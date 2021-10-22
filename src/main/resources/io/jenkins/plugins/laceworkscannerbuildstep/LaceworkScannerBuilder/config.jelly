@@ -1,0 +1,39 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <!--
+    This jelly script is used for per-project configuration.
+
+    See global.jelly for a general discussion about jelly script.
+  -->
+
+  <f:block>
+    <b>Image to scan:</b>
+  </f:block>
+  <f:entry title="Image Name" field="imageName">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Image Tag" field="imageTag">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Evaluate Lacework Policies" field="evaluatePolicies">
+    <f:checkbox name="evaluatePolicies"/>
+  </f:entry>
+  <f:entry title="Scan Library Packages" field="scanLibraryPackages">
+    <f:checkbox name="scanLibraryPackages"/>
+  </f:entry>
+  <f:entry title="Only Fixable Vulnerabilities" field="fixableOnly">
+    <f:checkbox name="fixableOnly"/>
+  </f:entry>
+  <f:entry title="Save Results to Lacework" field="saveToLacework">
+    <f:checkbox name="saveToLacework"/>
+  </f:entry>
+  <f:entry title="Do Not Pull Images" field="noPull">
+    <f:checkbox name="noPull"/>
+  </f:entry>
+  <f:entry title="Custom Flags" field="customFlags">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Tags" field="tags">
+    <f:textbox />
+  </f:entry>
+</j:jelly>
