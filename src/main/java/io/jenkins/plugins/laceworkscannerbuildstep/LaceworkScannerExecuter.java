@@ -27,6 +27,10 @@ public class LaceworkScannerExecuter {
 
         PrintStream print_stream = null;
         try {
+            // Check to see if environment variables were provided as imageName/imageTag
+            imageName = env.expand(imageName);
+            imageTag = env.expand(imageTag);
+
             ArgumentListBuilder args = new ArgumentListBuilder();
 
             String buildId = env.get("BUILD_ID");
@@ -40,9 +44,15 @@ public class LaceworkScannerExecuter {
 
             args.add("lw-scanner", "image", "evaluate", imageName, imageTag);
 
-            // Add Lacework authentication
-            args.add("--account-name", laceworkAccountName, "--access-token");
-            args.addMasked(laceworkAccessToken);
+            // Add Lacework authentication if no environment variables
+            // This allows for override in a specific pipeline
+            if (env.get("LW_ACCOUNT_NAME") == null) {
+                args.add("--account-name", laceworkAccountName);
+            }
+            if (env.get("LW_ACCESS_TOKEN") == null) {
+                args.add("--access-token");
+                args.addMasked(laceworkAccessToken);
+            }
 
             args.add("--build-id", buildId);
             args.add("--build-plan", buildName);
