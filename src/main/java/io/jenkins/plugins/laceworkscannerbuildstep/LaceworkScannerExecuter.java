@@ -5,12 +5,13 @@ import hudson.Launcher.ProcStarter;
 import hudson.util.ArgumentListBuilder;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
-import jenkins.model.Jenkins;
 
 /**
  * This class does the actual lw-scanner execution.
@@ -26,6 +27,10 @@ public class LaceworkScannerExecuter {
 
         PrintStream print_stream = null;
         try {
+            // Check to see if environment variables were provided as imageName/imageTag
+            imageName = env.expand(imageName);
+            imageTag = env.expand(imageTag);
+
             ArgumentListBuilder args = new ArgumentListBuilder();
 
             String buildId = env.get("BUILD_ID");
@@ -34,11 +39,20 @@ public class LaceworkScannerExecuter {
 
             File htmlFile = new File(build.getRootDir(), outputHtmlName);
 
+            String cssFileName = "laceworkstyles.css";
+            File cssFile = new File(build.getRootDir(), cssFileName);
+
             args.add("lw-scanner", "image", "evaluate", imageName, imageTag);
 
-            // Add Lacework authentication
-            args.add("--account-name", laceworkAccountName, "--access-token");
-            args.addMasked(laceworkAccessToken);
+            // Add Lacework authentication if no environment variables
+            // This allows for override in a specific pipeline
+            if (env.get("LW_ACCOUNT_NAME") == null) {
+                args.add("--account-name", laceworkAccountName);
+            }
+            if (env.get("LW_ACCESS_TOKEN") == null) {
+                args.add("--access-token");
+                args.addMasked(laceworkAccessToken);
+            }
 
             args.add("--build-id", buildId);
             args.add("--build-plan", buildName);
@@ -85,28 +99,19 @@ public class LaceworkScannerExecuter {
             listener.getLogger().println(args.toString());
             int exitCode = ps.join(); // RUN !
 
-            // CSS
-            // File cssFile;
-            // FilePath cssTarget = new FilePath(workspace, "styles.css");
-
-            // if (Jenkins.get().getPluginManager().getWorkDir() != null)
-            // cssFile = new File(Jenkins.get().getPluginManager().getWorkDir() +
-            // "/lacework-security-scanner/css/",
-            // "styles.css");
-            // else
-            // cssFile = new File(
-            // Jenkins.get().getPlugin("lacework-security-scanner").getWrapper().baseResourceURL.getFile(),
-            // "css/styles.css");
-            // FilePath cssFilePath = new FilePath(cssFile);
-            // cssFilePath.copyTo(cssTarget);
-
             // HTML
             FilePath htmlFilePath = new FilePath(htmlFile);
             FilePath htmlTarget = new FilePath(workspace, outputHtmlName);
             htmlFilePath.copyTo(htmlTarget);
 
-            // String htmlOutput = htmlTarget.readToString();
-            // cleanHtmlOutput(htmlOutput, htmlTarget, listener);
+            String htmlOutput = htmlFilePath.readToString();
+            cleanHtmlOutput(htmlOutput, htmlTarget, listener);
+
+            // CSS
+            FilePath cssFilePath = new FilePath(cssFile);
+            generateCssFile(htmlOutput, cssFilePath, listener);
+            FilePath cssTarget = new FilePath(workspace, cssFileName);
+            cssFilePath.copyTo(cssTarget);
 
             return exitCode;
 
@@ -123,7 +128,25 @@ public class LaceworkScannerExecuter {
         }
     }
 
-    // Read output save HTML and print stderr
+    private static void generateCssFile(String scanOutput, FilePath target, TaskListener listener) {
+
+        String cssContent = "";
+
+        Pattern pattern = Pattern.compile("(?s)<style>(.*?)</style>");
+        Matcher matcher = pattern.matcher(scanOutput);
+
+        while (matcher.find()) {
+            cssContent = cssContent + matcher.group(1) + "\n";
+        }
+
+        try {
+            target.write(cssContent, "UTF-8");
+        } catch (Exception e) {
+            listener.getLogger().println("Failed to save CSS file.");
+        }
+    }
+
+    // Clean the inline CSS from HTML
     private static boolean cleanHtmlOutput(String scanOutput, FilePath target, TaskListener listener) {
 
         int htmlStart = scanOutput.indexOf("<!DOCTYPE html>");
@@ -136,13 +159,16 @@ public class LaceworkScannerExecuter {
 
         // Remove <style> & <script> tags (Jenkins CSP doesn't allow)
         scanOutput = scanOutput.substring(htmlStart, htmlEnd);
-        String scanRegex = "(?s)<script.*?(/>|</script>)";
-        scanOutput = scanOutput.replaceAll(scanRegex, "");
-        scanRegex = "(?s)<style.*?(/>|</style>)";
-        scanOutput = scanOutput.replaceAll(scanRegex, "");
+
+        String styleRegex = "(?s)<style.*?(/>|</style>)";
+        scanOutput = scanOutput.replaceAll(styleRegex, "");
+
+        // String scriptRegex = "(?s)<script.*?(/>|</script>)";
+        // scanOutput = scanOutput.replaceAll(scriptRegex, "");
 
         int headEnd = scanOutput.lastIndexOf("</head>");
-        scanOutput = insert(scanOutput, "<link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\">", headEnd);
+        scanOutput = insert(scanOutput, "<link rel=\"stylesheet\" type=\"text/css\" href=\"laceworkstyles.css\">",
+                headEnd);
         try {
             target.write(scanOutput, "UTF-8");
         } catch (Exception e) {

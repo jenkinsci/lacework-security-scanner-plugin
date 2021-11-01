@@ -135,12 +135,12 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
         System.out.println("exitCode: " + exitCode);
         String failedMessage = "Scanning failed.";
         switch (exitCode) {
-            case OK_CODE:
-                System.out.println("Scanning success.");
-                break;
-            default:
-                // This exception causes the message to appear in the Jenkins console
-                throw new AbortException(failedMessage);
+        case OK_CODE:
+            System.out.println("Scanning success.");
+            break;
+        default:
+            // This exception causes the message to appear in the Jenkins console
+            throw new AbortException(failedMessage);
         }
     }
 
@@ -155,14 +155,13 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
             throw new InterruptedException(
                     "Failed to setup build results due to an unexpected error. Please refer to above logs for more information");
         }
-        // try {
-        // ArtifactArchiver styleArtifactArchiver = new ArtifactArchiver("styles.css");
-        // styleArtifactArchiver.perform(build, workspace, env, launcher, listener);
-        // } catch (Exception e) {
-        // throw new InterruptedException(
-        // "Failed to setup build results due to an unexpected error. Please refer to
-        // above logs for more information");
-        // }
+        try {
+            ArtifactArchiver styleArtifactArchiver = new ArtifactArchiver("laceworkstyles.css");
+            styleArtifactArchiver.perform(build, workspace, env, launcher, listener);
+        } catch (Exception e) {
+            throw new InterruptedException(
+                    "Failed to setup build results due to an unexpected error. Please refer to above logs for more information");
+        }
     }
 
     @Override
