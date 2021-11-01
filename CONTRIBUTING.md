@@ -14,14 +14,15 @@ Read the [README.md](README.md)
 
 ## Reporting Bugs
 
-Ensure the issue you are raising has not already been created under [issues](/issues).
-If no current issue addresses the problem, open a new [issue](/issues/new).
-Include as much relevant information as possible. See the [bug template](.github/ISSUE_TEMPLATE/bug_report.md) for help on creating a new issue.
+This repository leverages GitHub Issues to track bug reports.
+
+Ensure the issue you are raising has not already been created. If no current issue addresses the problem, open a new issue using the provided "Bug report" template and include as much relevant information as possible.
 
 ## Feature Requests
 
-If you wish to submit a request to add new functionality or an improvement to a terraform module then use the the [feature request](.github/ISSUE_TEMPLATE/feature_request.md) template to
-open a new [issue](/issues/new)
+This repository leverages GitHub Issues to track feature requests.
+
+If you wish to submit a request to add new functionality or an improvement open a new issue using the provided "Feature request" template and include as much relevant information as possible.
 
 ## Creating a Pull Request
 
