@@ -12,13 +12,6 @@ Once the Inline Scanner integration is created in the Lacework platform, you wil
 
 Once the global configuration is complete, you can add the Lacework Security build step to your pipelines. This will allow container assurance and vulnerability assessments to take place during the build process, and fail builds (if desired) that do not abide by specified policies.
 
-## Issues
-
-TODO Decide where you're going to host your issues, the default is Jenkins JIRA, but you can also enable GitHub issues,
-If you use GitHub issues there's no need for this section; else add the following line:
-
-Report issues and enhancements in the [Jenkins issue tracker](https://issues.jenkins-ci.org/).
-
 ## Contributing
 
 To contribute to this repository, please review the [CONTRIBUTING](CONTRIBUTING.md) file.
