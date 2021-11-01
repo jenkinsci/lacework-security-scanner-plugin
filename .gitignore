@@ -12,6 +12,7 @@ target/
 .settings/
 .classpath
 .project
+.vscode/
 
 #################################
 # Jenkins files                 #
