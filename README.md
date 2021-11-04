@@ -42,7 +42,7 @@ Provide the container image name and tag (environment variables are allowed) and
 </details>
 </blockquote>
 
-Once the Lacework Scan build step is added, it will produce a vulnerability report as an artifact for the build
+Once the Lacework Scan build step is added, it will produce an assessment report as an artifact for the build.
 
 ## Contributing
 
