@@ -130,17 +130,17 @@ public class LaceworkScannerExecuter {
 
     private static void generateCssFile(String scanOutput, FilePath target, TaskListener listener) {
 
-        String cssContent = "";
+        StringBuilder cssContent = new StringBuilder("");
 
         Pattern pattern = Pattern.compile("(?s)<style>(.*?)</style>");
         Matcher matcher = pattern.matcher(scanOutput);
 
         while (matcher.find()) {
-            cssContent = cssContent + matcher.group(1) + "\n";
+            cssContent.append(matcher.group(1) + "\n");
         }
 
         try {
-            target.write(cssContent, "UTF-8");
+            target.write(cssContent.toString(), "UTF-8");
         } catch (Exception e) {
             listener.getLogger().println("Failed to save CSS file.");
         }
