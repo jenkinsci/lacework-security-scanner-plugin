@@ -18,8 +18,11 @@
   <f:entry title="Evaluate Lacework Policies" field="evaluatePolicies">
     <f:checkbox name="evaluatePolicies"/>
   </f:entry>
-  <f:entry title="Scan Library Packages" field="scanLibraryPackages">
-    <f:checkbox name="scanLibraryPackages"/>
+   <f:entry title="Show Evaluation Exceptions" field="showEvaluationExceptions">
+    <f:checkbox name="showEvaluationExceptions"/>
+  </f:entry>
+  <f:entry title="Disable Library Package Scanning" field="disableLibraryPackageScanning">
+    <f:checkbox name="disableLibraryPackageScanning"/>
   </f:entry>
   <f:entry title="Only Fixable Vulnerabilities" field="fixableOnly">
     <f:checkbox name="fixableOnly"/>

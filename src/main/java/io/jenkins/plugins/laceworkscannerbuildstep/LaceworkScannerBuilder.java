@@ -35,7 +35,8 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
     private boolean noPull;
     private boolean evaluatePolicies;
     private boolean saveToLacework;
-    private boolean scanLibraryPackages;
+    private boolean disableLibraryPackageScanning;
+    private boolean showEvaluationExceptions;
     private String tags;
 
     public synchronized static void setBuildId(int buildId) {
@@ -48,8 +49,8 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
 
     @DataBoundConstructor
     public LaceworkScannerBuilder(String customFlags, boolean fixableOnly, String imageName, String imageTag,
-            boolean noPull, boolean evaluatePolicies, boolean saveToLacework, boolean scanLibraryPackages,
-            String tags) {
+            boolean noPull, boolean evaluatePolicies, boolean saveToLacework, boolean disableLibraryPackageScanning,
+            boolean showEvaluationExceptions, String tags) {
         this.customFlags = customFlags;
         this.fixableOnly = fixableOnly;
         this.imageName = imageName;
@@ -57,7 +58,8 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
         this.noPull = noPull;
         this.evaluatePolicies = evaluatePolicies;
         this.saveToLacework = saveToLacework;
-        this.scanLibraryPackages = scanLibraryPackages;
+        this.disableLibraryPackageScanning = disableLibraryPackageScanning;
+        this.showEvaluationExceptions = showEvaluationExceptions;
         this.tags = tags;
     }
 
@@ -89,8 +91,12 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
         return saveToLacework;
     }
 
-    public boolean getScanLibraryPackages() {
-        return scanLibraryPackages;
+    public boolean getDisableLibraryPackageScanning() {
+        return disableLibraryPackageScanning;
+    }
+
+    public boolean getShowEvaluationExceptions() {
+        return showEvaluationExceptions;
     }
 
     public String getTags() {
@@ -118,29 +124,28 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
             setBuildId(build.hashCode());
             setCount(1);
             artifactSuffix = null; // When there is only one step, there should be no suffix at all
-            artifactName = "laceworkscan.html";
+            artifactName = "laceworkscan.txt";
         } else {
             setCount(count + 1);
             artifactSuffix = Integer.toString(count);
-            artifactName = "laceworkscan-" + artifactSuffix + ".html";
+            artifactName = "laceworkscan-" + artifactSuffix + ".txt";
         }
 
         int exitCode = LaceworkScannerExecuter.execute(build, workspace, env, launcher, listener, laceworkAccountName,
                 laceworkAccessToken, customFlags, fixableOnly, imageName, imageTag, artifactName, noPull,
-                evaluatePolicies, saveToLacework, scanLibraryPackages, tags);
+                evaluatePolicies, saveToLacework, disableLibraryPackageScanning, showEvaluationExceptions, tags);
         build.addAction(new LaceworkScannerAction(build, artifactSuffix, artifactName));
-
-        archiveArtifacts(build, workspace, env, launcher, listener);
 
         System.out.println("exitCode: " + exitCode);
         String failedMessage = "Scanning failed.";
+        archiveArtifacts(build, workspace, env, launcher, listener);
         switch (exitCode) {
-        case OK_CODE:
-            System.out.println("Scanning success.");
-            break;
-        default:
-            // This exception causes the message to appear in the Jenkins console
-            throw new AbortException(failedMessage);
+            case OK_CODE:
+                System.out.println("Scanning success.");
+                break;
+            default:
+                // This exception causes the message to appear in the Jenkins console
+                throw new AbortException(failedMessage);
         }
     }
 
@@ -151,13 +156,6 @@ public class LaceworkScannerBuilder extends Builder implements SimpleBuildStep {
         try {
             ArtifactArchiver artifactArchiver = new ArtifactArchiver("laceworkscan*");
             artifactArchiver.perform(build, workspace, env, launcher, listener);
-        } catch (Exception e) {
-            throw new InterruptedException(
-                    "Failed to setup build results due to an unexpected error. Please refer to above logs for more information");
-        }
-        try {
-            ArtifactArchiver styleArtifactArchiver = new ArtifactArchiver("laceworkstyles.css");
-            styleArtifactArchiver.perform(build, workspace, env, launcher, listener);
         } catch (Exception e) {
             throw new InterruptedException(
                     "Failed to setup build results due to an unexpected error. Please refer to above logs for more information");

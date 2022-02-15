@@ -1,6 +1,6 @@
 # Lacework Security
 
-[![Lacework](https://www.lacework.com/wp-content/uploads/2021/09/Lacework_Logo_color_2019.svg)](https://www.lacework.com)
+[![Lacework](https://techally-content.s3-us-west-1.amazonaws.com/public-content/lacework_logo_full.png)](https://www.lacework.com)
 
 ## Introduction
 

@@ -22,8 +22,9 @@ public class LaceworkScannerExecuter {
 
     public static int execute(Run<?, ?> build, FilePath workspace, EnvVars env, Launcher launcher,
             TaskListener listener, String laceworkAccountName, Secret laceworkAccessToken, String customFlags,
-            boolean fixableOnly, String imageName, String imageTag, String outputHtmlName, boolean noPull,
-            boolean evaluatePolicies, boolean saveToLacework, boolean scanLibraryPackages, String tags) {
+            boolean fixableOnly, String imageName, String imageTag, String outputFile, boolean noPull,
+            boolean evaluatePolicies, boolean saveToLacework, boolean disableLibraryPackageScanning,
+            boolean showEvaluationExceptions, String tags) {
 
         PrintStream print_stream = null;
         try {
@@ -32,33 +33,37 @@ public class LaceworkScannerExecuter {
             imageTag = env.expand(imageTag);
 
             ArgumentListBuilder args = new ArgumentListBuilder();
+            args.add("docker", "run");
+
+            args.add("--rm", "-v", "/var/run/docker.sock:/var/run/docker.sock");
+            args.add("lacework/lacework-inline-scanner:0.2.8", "image", "evaluate", imageName, imageTag);
+
+            // Use environment variables for Lacework auth, if they exist
+            // This allows for override in a specific pipeline
+            args.add("--account-name");
+            if (env.get("LW_ACCOUNT_NAME") == null) {
+                args.add(laceworkAccountName);
+            } else {
+                args.add(env.get("LW_ACCOUNT_NAME"));
+            }
+
+            args.add("--access-token");
+            if (env.get("LW_ACCESS_TOKEN") == null) {
+                args.addMasked(laceworkAccessToken);
+            } else {
+                args.addMasked(env.get("LW_ACCESS_TOKEN"));
+            }
 
             String buildId = env.get("BUILD_ID");
             String buildName = env.get("JOB_NAME").trim();
             buildName = buildName.replaceAll("\\s+", "");
 
-            File htmlFile = new File(build.getRootDir(), outputHtmlName);
-
-            String cssFileName = "laceworkstyles.css";
-            File cssFile = new File(build.getRootDir(), cssFileName);
-
-            args.add("lw-scanner", "image", "evaluate", imageName, imageTag);
-
-            // Add Lacework authentication if no environment variables
-            // This allows for override in a specific pipeline
-            if (env.get("LW_ACCOUNT_NAME") == null) {
-                args.add("--account-name", laceworkAccountName);
-            }
-            if (env.get("LW_ACCESS_TOKEN") == null) {
-                args.add("--access-token");
-                args.addMasked(laceworkAccessToken);
-            }
-
             args.add("--build-id", buildId);
             args.add("--build-plan", buildName);
 
-            args.add("--html");
-            args.add("--html-file", htmlFile.getAbsolutePath());
+            File htmlFile = new File(build.getRootDir(), outputFile);
+            // args.add("--html");
+            // args.add("--html-file", htmlFile.getAbsolutePath());
 
             if (fixableOnly) {
                 args.add("--fixable");
@@ -69,15 +74,19 @@ public class LaceworkScannerExecuter {
             }
 
             if (evaluatePolicies) {
-                args.add("--policy");
+                args.add("--policy", "--fail-on-violation-exit-code", "1");
             }
 
             if (saveToLacework) {
                 args.add("--save");
             }
 
-            if (scanLibraryPackages) {
-                args.add("--scan-library-packages");
+            if (disableLibraryPackageScanning) {
+                args.add("--disable-library-package-scanning");
+            }
+
+            if (showEvaluationExceptions) {
+                args.add("--exceptions");
             }
 
             if (tags != null && !tags.equals("")) {
@@ -88,30 +97,30 @@ public class LaceworkScannerExecuter {
                 args.addTokenized(customFlags);
             }
 
-            File outFile = new File(build.getRootDir(), "output");
+            args.add("-q");
+
             ProcStarter ps = launcher.launch();
             ps.cmds(args);
             ps.stdin(null);
-            print_stream = new PrintStream(outFile, "UTF-8");
+            print_stream = new PrintStream(htmlFile, "UTF-8");
             ps.stderr(print_stream);
             ps.stdout(print_stream);
             ps.quiet(true);
             listener.getLogger().println(args.toString());
             int exitCode = ps.join(); // RUN !
 
-            // HTML
+            // Text
             FilePath htmlFilePath = new FilePath(htmlFile);
-            FilePath htmlTarget = new FilePath(workspace, outputHtmlName);
+            FilePath htmlTarget = new FilePath(workspace, outputFile);
             htmlFilePath.copyTo(htmlTarget);
 
-            String htmlOutput = htmlFilePath.readToString();
-            cleanHtmlOutput(htmlOutput, htmlTarget, listener);
+            // HTML
+            // FilePath htmlFilePath = new FilePath(htmlFile);
+            // FilePath htmlTarget = new FilePath(workspace, outputHtmlName);
+            // htmlFilePath.copyTo(htmlTarget);
 
-            // CSS
-            FilePath cssFilePath = new FilePath(cssFile);
-            generateCssFile(htmlOutput, cssFilePath, listener);
-            FilePath cssTarget = new FilePath(workspace, cssFileName);
-            cssFilePath.copyTo(cssTarget);
+            // String htmlOutput = htmlFilePath.readToString();
+            // cleanHtmlOutput(htmlOutput, htmlTarget, listener);
 
             return exitCode;
 
