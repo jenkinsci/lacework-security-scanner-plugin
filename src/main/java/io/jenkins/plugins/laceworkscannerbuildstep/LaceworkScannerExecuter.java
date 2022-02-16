@@ -36,7 +36,7 @@ public class LaceworkScannerExecuter {
             args.add("docker", "run");
 
             args.add("--rm", "-v", "/var/run/docker.sock:/var/run/docker.sock");
-            args.add("lacework/lacework-inline-scanner:0.2.8", "image", "evaluate", imageName, imageTag);
+            args.add("lacework/lacework-inline-scanner:0.2.9", "image", "evaluate", imageName, imageTag);
 
             // Use environment variables for Lacework auth, if they exist
             // This allows for override in a specific pipeline
