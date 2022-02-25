@@ -9,14 +9,13 @@
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>lacework-security-scanner</artifactId>
-    <version>1.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
-        <revision>1.0</revision>
-        <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.277.1</jenkins.version>
         <java.level>8</java.level>
-        <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>    </properties>
+        <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+    </properties>
     <name>Lacework Security Scanner</name>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
