@@ -3,5 +3,5 @@
   This view is used to render the installed plugins page.
 -->
 <div>
-    This plugin enables Lacework container image assurance scans.
+    Enables Lacework container image assurance scans.
 </div>
