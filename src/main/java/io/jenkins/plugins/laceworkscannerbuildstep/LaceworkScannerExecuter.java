@@ -35,8 +35,15 @@ public class LaceworkScannerExecuter {
             ArgumentListBuilder args = new ArgumentListBuilder();
             args.add("docker", "run");
 
+            String inlineScannerRepo = "lacework/lacework-inline-scanner";
+            String inlineScannerTag = "0.2.10";
+            if (env.get("LW_INLINE_SCANNER_VERSION") != null) {
+                inlineScannerTag = env.get("LW_INLINE_SCANNER_VERSION");
+            }
+            String inlineScannerContainer = String.format("%s:%s", inlineScannerRepo, inlineScannerTag);
+
             args.add("--rm", "-v", "/var/run/docker.sock:/var/run/docker.sock");
-            args.add("lacework/lacework-inline-scanner:0.2.9", "image", "evaluate", imageName, imageTag);
+            args.add(inlineScannerContainer, "image", "evaluate", imageName, imageTag);
 
             // Use environment variables for Lacework auth, if they exist
             // This allows for override in a specific pipeline
