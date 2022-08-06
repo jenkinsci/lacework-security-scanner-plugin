@@ -36,7 +36,7 @@ public class LaceworkScannerExecuter {
             args.add("docker", "run");
 
             String inlineScannerRepo = "lacework/lacework-inline-scanner";
-            String inlineScannerTag = "0.2.13";
+            String inlineScannerTag = "0.7.0";
             if (env.get("LW_INLINE_SCANNER_VERSION") != null) {
                 inlineScannerTag = env.get("LW_INLINE_SCANNER_VERSION");
             }
